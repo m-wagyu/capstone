@@ -1,9 +1,10 @@
 import subprocess as sp
-import os.path
+from os.path import isdir
 import psutil
 import io
-import json
-import yaml
+from time import sleep
+import consock
+import re
 
 
 # Process => the NIDS(Suricata)
@@ -12,27 +13,26 @@ import yaml
 # - start process
 # - stop process
 # - reload process
+# - get alert
+# - clear alert
+# - get runtime log
+
+#TODO:
 # - add rule
 # - get rule
-# - get alert
 # - get stats
-# - get error
-
-#EXCEPTION LIST:
-# - ProcessLoadInvalidRuleEception
-
-
-#class ProcessLoadInvalidRuleEception(Exception):
-  # To be called when invalid rule exist
-#  pass
-
 
 
 class Controller():
-  def __init__(self, conf_file: str, queue_num: int, af_pack: bool = False):
+  def __init__(self, conf_file: str):
     self.conf_file = conf_file
-    self.af_pack = af_pack
-    self.queue_num = queue_num
+    self.default_cmd = ['suricata','-D','-c',self.conf_file,'-q','0']
+    self.socket = consock.ConSock('/var/run/suricata/suricata-command.socket')
+
+    self.files = {'eve':'/var/log/suricata/eve.json',
+		'fast':'/var/log/suricata/fast.json',
+		'rule':'/var/lib/suricata/rules/suricata.rules',
+		'suricata':'/var/log/suricata/suricata.log'}
  
     self.tmp_dir = '/tmp/Suricata_controller/'
 
@@ -45,19 +45,7 @@ class Controller():
         return proc.pid
     return False
 
-  def __proc_check_error(self) -> list:
-    try:
-      s = sp.check_output(['suricata', '-T', '-c', self.conf_file,])
-      buf = io.StringIO(s.decode())
-      err = []
-      for line in buf:
-        if ("<Warning>" in line) or ("<Error>" in line):
-          err.append(line)
-      return err
-    except sp.CalledProcessError:
-      pass
-
-  def __build_rule(self, rule:dict) -> str:
+  def __build_rule(self, rule:dict):
     return "{} {} {} {} {} {} {} ( msg:\"{}\"; sid:{}; gid:{}; rev:{}; )".format(
       	rule["action"].strip(), rule["proto"].strip(),
       	rule["src"][0].strip(), rule["src"][1],
@@ -65,108 +53,137 @@ class Controller():
       	rule["dst"][0].strip(), rule["dst"][1],
       	rule['msg'].strip(), rule['sid'], rule['gid'], rule['rev'])
 
+  def __get_runtime_log(self):
+    regex = '^.*<Notice>.*running in .*mode$'
+    buf = []
+    try:
+      with open(self.files['suricata'],'r') as f:
+        for l in f:
+          if re.match(regex,l):
+            buf = []
+          s = re.split(' - ',l.strip())
+          if len(s) == 3:
+            buf.append({'ts':s[0],'type':re.sub(r'[<>]','',s[1]),'msg':s[2]})
+          else:
+            buf.append({'ts':s[0],'type':re.sub(r'[<>]','',s[1]),'msg':s[3]})
+      return {'result':"OK",'msg':buf}
+    except OSError:
+      return {'result':"NOK",'error':'File '+self.files['suricata']+' not found'}
+      
+
 
 ####### Publicly accessible methods ######
 
+### proc related ###
+
   def proc_start(self):
-    #if NIDS.proc_is_run():
-    #  ret = {'function':'proc_start',
-    #    	'result':'NOK'}
-    #  return json.dumps(ret)
     try:
-      if not os.path.isdir(self.tmp_dir):
+      if not isdir(self.tmp_dir):
         sp.run(['mkdir','-p',self.tmp_dir])
       sp.run(['cp', self.conf_file, self.tmp_dir], stdout=sp.DEVNULL)
-      err = self.__proc_check_error()
-      #write error to $tmp_dir/runtime_err
-      if err:
-        with open(self.tmp_dir + 'runtime_err', 'w') as f:
-          for line in err:
-            f.write("%s\n" % line)
-        raise ProcessLoadInvalidRuleException
-      cmd = ['suricata','-D','-c',self.conf_file,'-q',str(self.queue_num)]
-      sp.run(cmd,stdout=sp.DEVNULL)
-    #except ProcessLoadInvalidRuleException:
-    #  print('ProcessLoadInvalidRuleEception')
+      sp.run(self.default_cmd,stdout=sp.DEVNULL)
     except Exception:
-      pass
-    ret = {'function':'proc-start',
-		'result':'OK' if Controller.proc_is_run() else 'NOK'}
-    return json.dumps(ret)
+      return {'f':'proc_start','result':'NOK','error':'Other error'}
+    return {'f':'proc_start','result':'OK'}
 
   def proc_stop(self):
-    pid = Controller.proc_is_run()
-    if pid:
-      sp.run(['kill','-15',str(pid)])	# send SIGTERM
-    import time
-    time.sleep(0.1)
-    ret = {'function':'proc-stop',
-		'result':'OK' if Controller.proc_is_run() else 'NOK'}
-    return json.dumps(ret)
+    try:
+      self.socket.s_connect()
+      r = self.socket.send_cmd('shutdown')
+      self.socket.s_close()
+      return {'f':'proc_stop','result':'OK'}
+    except OSError:
+      return {'f':'proc_stop','result':'NOK','error':'socket error'}
 
-  def proc_restart(self):
-    if Controller.proc_is_run():
-      self.proc_stop()
-    p_json = json.loads(self.proc_start())
-    if p_json['result'] == 'OK':
-      ret = {'function':'proc-restart',
-		'result':'OK'}
-    else:
-      ret = {'function':'proc-restart',
-		'result':'NOK'}
-    return json.dumps(ret)
+  def proc_reload(self):
+    try:
+      self.socket.s_connect()
+      r = self.socket.send_cmd('reload-rules')
+      self.socket.s_close()
+      return {'f':'proc_reload','result':'OK'}
+    except OSError:
+      return {'f':'proc_reload','result':'NOK','error':'Socket error'}
 
-  # rule -> action,proto,src,dir,dst,msg,
-  def rule_add(self, rule:dict):
-    rule_str = self.__build_rule(rule)
-    if not rule_str:
-      return {'result':'NOK','function':'rule-add'}
+  def log_get(self):
+    out = self.__get_runtime_log()
+    if out['result'] == "OK":
+      return {'f':'log_get','result':'OK','msg':out['msg']}
     else:
-      try:
-        with open('/var/lib/suricata/rules/suricata.rules', 'ab') as f:
-          f.write((rule_str+'\n').encode('ascii'))
-          return json.dumps({'result':'OK','function':'rule-add','arg':rule_str})
-      except Exception:
+      return {'f':'log_get','result':'NOK','error':out['error']}
+
+  def alert_get(self,page_num=None,count_per_page=None):
+    buf = []
+    load = True
+    if type(page_num) == int and type(count_per_page) == int:
+      load = (page_num*count_per_page,
+      	((page_num+1)*count_per_page)-1)
+    try:
+      i = 0
+      with open(self.files['eve'],'r') as f:
+        import json
+        if load == True:
+          alert = json.loads(f.readline())
+          while alert:
+            if alert['event_type'] == 'alert':
+              ts = alert['timestamp'].split('T')
+              date = ts[0]
+              time = ts[1].split('.')[0]
+              if 'src_port' in alert.keys():
+                src = "{}:{}".format(alert['src_ip'],alert['src_port'])
+              else:
+                src = alert['src_ip']
+              if 'dest_port' in alert.keys():
+                dst = "{}:{}".format(alert['dest_ip'],alert['dest_port'])
+              else:
+                dst = alert['dest_ip']
+              a = {'time':'{} {}'.format(date,time),
+	  	'src_dst':'{} -> {}'.format(src,dst),
+	  	'proto':alert['proto'],
+	  	'action':alert['alert']['action'],
+	  	'message':alert['alert']['signature']}
+              buf.append(a)
+              i += 1
+            alert = json.loads(f.readline())
+        else:
+          alert = json.loads(f.readline())
+          while alert:
+            if alert['event_type'] == 'alert':
+              #if i > load[1]:
+              #  break
+              if i >= load[0] and i <= load[1]:
+                ts = alert['timestamp'].split('T')
+                date = ts[0]
+                time = ts[1].split('.')[0]
+                if 'src_port' in alert.keys():
+                  src = "{}:{}".format(alert['src_ip'],alert['src_port'])
+                else:
+                  src = alert['src_ip']
+                if 'dest_port' in alert.keys():
+                  dst = "{}:{}".format(alert['dest_ip'],alert['dest_port'])
+                else:
+                  dst = alert['dest_ip']
+                a = {'time':'{} {}'.format(date,time),
+	          'src_dst':'{} -> {}'.format(src,dst),
+	          'proto':alert['proto'],
+	          'action':alert['alert']['action'],
+	          'message':alert['alert']['signature']}
+                buf.append(a)
+              i += 1
+            alert = json.loads(f.readline())
+      return {'f':'alert_get','result':'OK','msg':{'alerts':buf,'total':i}}
+    except OSError:
+      return {'f':'alert_get','result':'NOK','error':'File not exist'} 
+    except json.JSONDecodeError:
+      return {'f':'alert_get','result':'OK','msg':{'alerts':buf,'total':i}}
+
+  def alert_clear(self):
+    try:
+      open_file = self.files['eve']
+      with open(open_file,'w') as f:
         pass
-      return {'result':'NOK','function':'rule-add'}
-
-  def rule_get(self, rule_file:str):
-    ret = {'rules':[]}
-    ret['function'] = 'rule-get'
-    # add try catch block if file not exist
-    try:
-      with open(rule_file, 'r') as f:
-        rule = f.readline()
-        while rule:
-          small = rule.split(' ',7)
-          rule_obj = {'active': True if small[0][0] != '#' else False,
-          		'action': small[0],
-          		'protocol': small[1],
-          		'src_ip': small[2],
-          		'src_port': small[3],
-          		'direction': small[4],
-          		'dst_ip': small[5],
-          		'dst_port': small[6]
-          		}
-          rule = f.readline()
-          ret['rules'].append(rule_obj)
-        ret['result'] = 'OK'
-    except:
-      ret['result'] = 'NOK'
-    return json.dumps(ret)
-
-  def rule_reload(self):
-    pid = Controller.proc_is_run()
-    try:
-      if pid:
-        sp.run(['kill','-12',pid])	# send SIGUSR2
-      return {'result':'OK'}
-    except:
-      pass
-    return {'result':'NOK'}
-
-  def get_stat(self):
-    pass
-
-  def get_alert(self):
-    pass
+      open_file = self.files['fast']
+      with open(open_file,'w') as f2:
+        pass
+      return {'f':'alert_clear','result':'OK','msg':''}
+    except OSError:
+      return {'f':'alert_clear','result':'NOK','error':'File '+open_file+' not found.'}

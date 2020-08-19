@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block head %}
+
+<title>Alert page</title>
+<script src="{{ url_for('static',filename='js/alert.js')}}"></script>
+
+{% endblock %}
+
+{% block body %}
+
+<div class='container'>
+  <div id='alerts'>
+  <table>
+  <thead>
+    <tr>
+      <th>Time</th>
+      <th>Action</th>
+      <th>Source &amp; Destination</th>
+      <th>Protocol</th>
+      <th>Message</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for i in alerts %}
+      <tr>
+        <td>{{i['time']}}</td>
+        <td>{{i['action']}}</td>
+        <td>{{i['src_dst']}}</td>
+        <td>{{i['proto']}}</td>
+        <td>{{i['message']}}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+  </table>
+  </div>
+  <p>total: {{total}}</p>
+  <button>reload</button>
+  <button>clear</button>
+</div>
+{% endblock %}
