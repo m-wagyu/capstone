@@ -15,12 +15,11 @@
   <p>Status: <strong style='color:#DD0000'>{{status}}</strong></p>
   {% endif %}
   <form action='#' method='post'>
-    <input type='hidden' name='function' value={{function}}>
     {% if status == 'Running' %}
-    <input type='submit' value='Terminate'/>
-    <input type='submit' value='Reload'/>
+    <button type='submit' name='function' value='proc_stop'>Terminate</button>
+    <button type='submit' name='function' value='proc_reload'>Reload</button>
     {% else %}
-    <input type='submit' value='Start'/>
+    <button type='submit' name='function' value='proc_start'>Start</button>
     {% endif %}
   </form>
 

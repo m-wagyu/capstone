@@ -5,6 +5,8 @@ import io
 from time import sleep
 import consock
 import re
+import json
+import yaml
 
 
 # Process => the NIDS(Suricata)
@@ -16,11 +18,14 @@ import re
 # - get alert
 # - clear alert
 # - get runtime log
+# - get stats
+# - make a method to check conf_file & populate self.files
 
 #TODO:
 # - add rule
 # - get rule
-# - get stats
+# - make a method to populate self.var_group
+# - refactor
 
 
 class Controller():
@@ -29,11 +34,9 @@ class Controller():
     self.default_cmd = ['suricata','-D','-c',self.conf_file,'-q','0']
     self.socket = consock.ConSock('/var/run/suricata/suricata-command.socket')
 
-    self.files = {'eve':'/var/log/suricata/eve.json',
-		'fast':'/var/log/suricata/fast.json',
-		'rule':'/var/lib/suricata/rules/suricata.rules',
-		'suricata':'/var/log/suricata/suricata.log'}
- 
+    self.files = Controller.__get_config_path(conf_file) 
+    #self.var_group = {}    # get valid address and port groups in config file
+
     self.tmp_dir = '/tmp/Suricata_controller/'
 
 
@@ -45,7 +48,7 @@ class Controller():
         return proc.pid
     return False
 
-  def __build_rule(self, rule:dict):
+  def __build_rule(self, rule):
     return "{} {} {} {} {} {} {} ( msg:\"{}\"; sid:{}; gid:{}; rev:{}; )".format(
       	rule["action"].strip(), rule["proto"].strip(),
       	rule["src"][0].strip(), rule["src"][1],
@@ -69,47 +72,80 @@ class Controller():
       return {'result':"OK",'msg':buf}
     except OSError:
       return {'result':"NOK",'error':'File '+self.files['suricata']+' not found'}
-      
 
+  @staticmethod
+  def __get_config_path(c_file):
+    try:
+      out = {}
+      f = open(c_file,'r')
+      buf = f.read()
+      conf = yaml.load(buf)
+      out['eve'] = conf['default-log-dir']+conf['outputs'][1]['eve-log']['filename']
+      out['fast'] = conf['default-log-dir']+conf['outputs'][0]['fast']['filename']
+      out['suricata'] = conf['default-log-dir']+conf['logging']['outputs'][1]['file']['filename']
+      out['rule'] = '/var/lib/suricata/rules/suricata.rules'
+      f.close()
+      return out
+    except OSError:
+      return {'eve':'/var/log/suricata/eve.json',
+	'fast':'/var/log/suricata/fast.json',
+	'rule':'/var/lib/suricata/rules/suricata.rules',
+	'suricata':'/var/log/suricata/suricata.log'}
+
+  '''
+  @staticmethod
+  def __get_config_group(c_file):
+    pass
+  '''
 
 ####### Publicly accessible methods ######
 
 ### proc related ###
 
   def proc_start(self):
+    #__get_config_path()
+    #__get_config_group()
     try:
       if not isdir(self.tmp_dir):
         sp.run(['mkdir','-p',self.tmp_dir])
       sp.run(['cp', self.conf_file, self.tmp_dir], stdout=sp.DEVNULL)
       sp.run(self.default_cmd,stdout=sp.DEVNULL)
     except Exception:
-      return {'f':'proc_start','result':'NOK','error':'Other error'}
-    return {'f':'proc_start','result':'OK'}
+      return {'result':'NOK','error':'Other error'}
+    return {'result':'OK'}
 
   def proc_stop(self):
     try:
       self.socket.s_connect()
       r = self.socket.send_cmd('shutdown')
       self.socket.s_close()
-      return {'f':'proc_stop','result':'OK'}
+      if r['return'] == 'OK':
+        return {'result':'OK'}
+      else:
+        return {'result':'NOK','error':'other error'}
     except OSError:
-      return {'f':'proc_stop','result':'NOK','error':'socket error'}
+      return {'result':'NOK','error':'socket error'}
 
   def proc_reload(self):
     try:
       self.socket.s_connect()
       r = self.socket.send_cmd('reload-rules')
       self.socket.s_close()
-      return {'f':'proc_reload','result':'OK'}
+      if r['return'] == 'OK':
+        return {'result':'OK'}
+      else:
+        return {'result':'NOK','error':'other error'}
     except OSError:
-      return {'f':'proc_reload','result':'NOK','error':'Socket error'}
+      return {'result':'NOK','error':'Socket error'}
 
   def log_get(self):
     out = self.__get_runtime_log()
     if out['result'] == "OK":
-      return {'f':'log_get','result':'OK','msg':out['msg']}
+      return {'result':'OK','msg':out['msg']}
     else:
-      return {'f':'log_get','result':'NOK','error':out['error']}
+      return {'result':'NOK','error':out['error']}
+
+### Alerts related ###
 
   def alert_get(self,page_num=None,count_per_page=None):
     buf = []
@@ -120,7 +156,6 @@ class Controller():
     try:
       i = 0
       with open(self.files['eve'],'r') as f:
-        import json
         if load == True:
           alert = json.loads(f.readline())
           while alert:
@@ -170,13 +205,15 @@ class Controller():
                 buf.append(a)
               i += 1
             alert = json.loads(f.readline())
-      return {'f':'alert_get','result':'OK','msg':{'alerts':buf,'total':i}}
+      return {'result':'OK','msg':{'alerts':buf,'total':i}}
     except OSError:
-      return {'f':'alert_get','result':'NOK','error':'File not exist'} 
+      return {'result':'NOK','error':'File not exist'} 
     except json.JSONDecodeError:
-      return {'f':'alert_get','result':'OK','msg':{'alerts':buf,'total':i}}
+      return {'result':'OK','msg':{'alerts':buf,'total':i}}
 
   def alert_clear(self):
+    if Controller.proc_is_run():
+      return {'result':'NOK','error':'Suricata is running'}
     try:
       open_file = self.files['eve']
       with open(open_file,'w') as f:
@@ -184,6 +221,110 @@ class Controller():
       open_file = self.files['fast']
       with open(open_file,'w') as f2:
         pass
-      return {'f':'alert_clear','result':'OK','msg':''}
+      return {'result':'OK'}
     except OSError:
-      return {'f':'alert_clear','result':'NOK','error':'File '+open_file+' not found.'}
+      return {'result':'NOK','error':'File '+open_file+' not found.'}
+
+
+### Statss related ###
+
+  # show uptime -> suricatasc['uptime'] (in seconds)
+  # show interface list -> suricatasc['iface-list']['ifaces']
+  # show packets received, dropped suricatasc['iface-stat'][<iface>]['pkts'] for each iface
+  # show most frequent rule hit (in table)
+    # select a rule and show the source ip and dest ip hits
+  # show activity based on past 24 hr (divide by each hour)
+  def stats_get(self):
+    out = {'result':'OK','msg':{'uptime':None,'version':None,'iface-list':None}}
+
+    try:
+      ver = sp.check_output(['suricata','-V']).decode().strip()
+      ver = re.search(r'[0-9](\.[0-9]){2}',ver).group(0)
+      out['msg']['version'] = ver
+    except Exception:
+      return out
+
+    try:
+      self.socket.s_connect()
+
+      trying = 'uptime'
+      r = self.socket.send_cmd('uptime')
+      if r['return'] == 'OK':
+        out['msg']['uptime'] = r['message']
+      else:
+        return out
+
+      r = self.socket.send_cmd('iface-list')
+      out['msg']['iface-list'] = []
+      if r['return'] == 'OK':
+        for i in r['message']['ifaces']:
+          out['msg']['iface-list'].append({'name':i})
+      else:
+        return out
+     
+      for i, val in enumerate(out['msg']['iface-list']):
+        r = self.socket.send_cmd('iface-stat',val['name'])
+        if r['return'] == 'OK':
+          out['msg']['iface-list'][i]['pkts'] = r['message']['pkts']
+          out['msg']['iface-list'][i]['drop'] = r['message']['drop']
+          out['msg']['iface-list'][i]['invalid-checksums'] = r['message']['invalid-checksums']
+        else:
+          return out
+      
+      self.socket.s_close()
+    except OSError:
+      self.socket.s_close()
+
+    sg = {}
+    tg = {}
+    try:
+      with open(self.files['eve'],'r') as f:
+        event = json.loads(f.readline())
+        #line = 0
+        while event:
+          if event['event_type'] == 'alert':
+            # populate tg
+            ts = event['timestamp'].split('T')
+            date = ts[0]
+            hr = ts[1].split(':')[0]
+            if not date in tg.keys():
+              tg[date] = {}
+              tg[date][hr] = 1
+            else:
+              if not hr in tg[date].keys():
+                tg[date][hr] = 1
+              else:
+                tg[date][hr] += 1
+            # populate sg
+            sid = event['alert']['signature_id']
+            addr = event['src_ip']+'_'+event['dest_ip']
+            if sid in sg.keys():
+              if addr in sg[sid].keys():
+                sg[sid][addr] += 1
+              else:
+                sg[sid][addr] = 1
+            else:
+              sg[sid] = {}
+              sg[sid][addr] = 1
+          #line += 1
+          event = json.loads(f.readline())
+        out['msg']['counter'] = sg
+        out['msg']['per_hour'] = tg
+    except OSError:
+      out['result'] = 'NOK'
+      out['error'] = 'File eve.json not found'
+    except  json.decoder.JSONDecodeError:
+      out['msg']['counter'] = sg
+      out['msg']['time_group'] = tg
+    finally:
+      return out
+
+  '''
+  def rule_get(self):
+    out = {'result':'OK','msg':{}}
+    try:
+      with open(self.files['rule'],'r') as f:
+        rule = f.readline()
+        while rule:
+  '''
+          

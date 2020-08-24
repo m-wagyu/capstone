@@ -1,3 +1,5 @@
 __pycache__/
-test.py
+templates/stats.html
+test*.py
+controller2.py
 *.swp

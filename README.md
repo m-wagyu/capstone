@@ -12,12 +12,14 @@ To check if the Suricata is running, use:
 
 	ps ax | grep suricata
 
-List of pages:
+List of accessible pages:
  - /home/
- - /home/run\_log
- - /alert/
- - /alert/alert\_log
- - /alert/clear\_log 
+ - /run\_log
+ - /alerts/
+ - /clear\_log 
+ - /stats/
+
+All pages other than home returns json data.
 
 In case you accessing the /alert/clear\_log. Your eve.json and fast.log
 file will be emptied. I have prepared sample page for eve.json and fast.log

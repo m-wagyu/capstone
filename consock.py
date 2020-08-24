@@ -16,9 +16,10 @@ class CmdReturnNOKException:
   pass
 
 class ConSock:
-  def __init__(self, consock_path):
+  def __init__(self, consock_path, verbose=False):
     self.consock_path = consock_path
     self.socket = socket(AF_UNIX)
+    self.verbose = verbose
 
   def __json_recv(self):
     ret = None
@@ -40,10 +41,12 @@ class ConSock:
         return None
         #raise MissingArgsException
     cmd_msg_str = json.dumps(cmd_msg)+'\n'
+    if self.verbose: print('Send: ',cmd_msg_str)
     self.socket.send(cmd_msg_str.encode())
     ready = select([self.socket],[],[],600)
     if ready[0]:
       ret = self.__json_recv()
+      if self.verbose: print('Send:',str(ret))
     else:
       ret = None
     if not ret:
