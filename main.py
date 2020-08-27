@@ -109,7 +109,7 @@ def alert():
     count_per_page = int(count_per_page)
   else:
     count_per_page = 30
-  alerts = s.alert_get(page_num,count_per_page)
+  out = s.alert_get(page_num,count_per_page)
   if out['result'] == 'OK':
     return jsonify(out)
   else:
@@ -134,7 +134,6 @@ def stats():
     abort(500)
     #error_message = out['error']
 
-'''
 @app.route('/rules/',methods=['GET'])
 def rules():
   out = s.rule_get()
@@ -142,7 +141,7 @@ def rules():
     return jsonify(out)
   else:
     abort(500)
-
+'''
 @app.route('/rules/',methods=['POST'])
 def rule_add():
   out = s.rule_add(<args>)
