@@ -24,3 +24,12 @@ All pages other than home returns json data.
 In case you accessing the /alert/clear\_log. Your eve.json and fast.log
 file will be emptied. I have prepared sample page for eve.json and fast.log
 in sample\_file folder.
+
+# Frontend Webpack Compile
+
+1. Install npm on your machine.
+2. ```npm install``` at the folder
+3. ```npm run start``` to watch frontend file change. 
+4. ```npm run dev``` build for development.
+5. ```npm run build``` build for production.
+5. Run Suricata Server ```sudo ./main.py```
