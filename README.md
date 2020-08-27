@@ -32,4 +32,4 @@ in sample\_file folder.
 3. ```npm run start``` to watch frontend file change. 
 4. ```npm run dev``` build for development.
 5. ```npm run build``` build for production.
-5. Run Suricata Server ```sudo ./main.py```
+5. Run Suricata Server ```sudo ./backend/main.py```
