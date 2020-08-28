@@ -32,43 +32,38 @@ def home():
         out = s.proc_stop()
         if out['result'] == 'OK':
           status = 'Stopped'
-          function = 'proc_start'
           logs = s.log_get()
-          return render_template('index.html',status=status,function=function,logs=logs)
+          return render_template('index.html',status=status,logs=logs)
         else:
           abort(500)
           #error_message = 'Failed to terminate Suricata due to '+out['error']
       else:
         status = 'Stopped'
-        function = 'proc_start'
         logs = s.log_get()
-        return render_template('index.html',status=status,function=function,logs=logs)
+        return render_template('index.html',status=status,logs=logs)
 
     elif f == 'proc_start':
       if not is_run:
         out = s.proc_start()
         if out['result'] == 'OK':
           status = 'Running'
-          function = 'proc_stop'
           logs = s.log_get()
-          return render_template('index.html',status=status,function=function,logs=logs)
+          return render_template('index.html',status=status,logs=logs)
         else:
           abort(500)
           #error_message = 'Failed to start Suricata due to '+out['error']
       else:
         status = 'Running'
-        function = 'proc_stop'
         logs = s.log_get()
-        return render_template('index.html',status=status,function=function,logs=logs)
+        return render_template('index.html',status=status,logs=logs)
 
     elif f == 'proc_reload':
       if is_run:
         out = s.proc_reload()
         if out['result'] == 'OK':
           status = 'Running'
-          function = 'proc_stop'
           logs = s.log_get()
-          return render_template('index.html',status=status,function=function,logs=logs)
+          return render_template('index.html',status=status,logs=logs)
         else:
           abort(500)
           #error_message = 'Failed to reload Suricata due to '+out['error']
@@ -80,7 +75,7 @@ def home():
       abort(400)
       #error_message = 'Requesting unknown function'
 
-@app.route('/run_log/',methods=['GET'])
+@app.route('/api/run_log/',methods=['GET'])
 def run_log():
   out = s.log_get()
   if out['result'] == 'OK':
@@ -93,9 +88,9 @@ def run_log():
 # For alert()
 # By default showing 30 alerts max.
 # To increase the limit, use the argument page & count:
-# For example: localhost:5000/alert?page=0&count=50
+# For example: localhost:5000/alerts?page=0&count=50
 
-@app.route('/alerts/',methods=['GET'])
+@app.route('/api/alerts/',methods=['GET'])
 def alert():
   out = None
   page_num = request.args.get('page')
@@ -112,44 +107,53 @@ def alert():
   out = s.alert_get(page_num,count_per_page)
   if out['result'] == 'OK':
     return jsonify(out)
-  else:
-    abort(500)
+  #else:
+    #abort(500)
     #error_message = alert['error']
 
-@app.route('/clear_log/',methods=['GET'])
+@app.route('/api/clear_log/',methods=['GET'])
 def clear_log():
   out = s.alert_clear()
   if out['result'] == 'OK':
     return jsonify(out)
-  else:
-    abort(500)
+  #else:
+    #abort(500)
     #error_message = out['error']
 
-@app.route('/stats/',methods=['GET'])
+@app.route('/api/stats/',methods=['GET'])
 def stats():
   out = s.stats_get()
   if out['result'] == 'OK':
     return jsonify(out)
-  else:
-    abort(500)
+  #else:
+    #abort(500)
     #error_message = out['error']
 
-@app.route('/rules/',methods=['GET'])
+@app.route('/api/rules/',methods=['GET'])
 def rules():
   out = s.rule_get()
   if out['result'] == 'OK':
     return jsonify(out)
-  else:
-    abort(500)
-'''
-@app.route('/rules/',methods=['POST'])
+
+@app.route('/api/add_rule/',methods=['POST'])
 def rule_add():
-  out = s.rule_add(<args>)
+  rule = {}
+  rule['enabled'] = request.form['enabled'] # value="True" or ""
+  rule['action'] = request.form['action'] # value=("drop"|"alert"|"pass"|"reject")
+  rule['proto'] = request.form['proto'] # value=('icmp'|'tcp'|'udp'|'ip')
+  rule['direction'] = request.form['direction'] # value=('->'|'<>') --> shown as "unidirectional"/"bi-directional"
+  rule['src_addr'] = request.form['src_addr'] # value=<a string>
+  rule['dst_addr'] = request.form['dst_addr'] # value=<a string>
+  rule['src_port'] = request.form['src_port'] # value=<a string>
+  rule['dst_port'] = request.form['dst_port'] # value=<a string>
+  rule['msg'] = request.form['msg'] # value=<a string>
+  rule['sid'] = request.form['sid'] # value=<an integer>
+  rule['gid'] = request.form['gid'] # value=<an integer>
+
+  out = s.rule_add(rule)
   if out['result'] == 'OK':
     return jsonify(out)
-  else:
-    abort(500)
-'''
+
 
 s = Controller(conf_file='/etc/suricata/suricata.yaml')
 ##### remove debug mode on final version !!! #####

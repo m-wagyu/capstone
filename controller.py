@@ -7,6 +7,8 @@ import consock
 import re
 import json
 import yaml
+import config_collector as cc
+import parser
 
 
 # Process => the NIDS(Suricata)
@@ -19,12 +21,12 @@ import yaml
 # - clear alert
 # - get runtime log
 # - get stats
+# - get rule
+# - make a method to populate self.var_group
 # - make a method to check conf_file & populate self.files
 
 #TODO:
 # - add rule
-# - get rule
-# - make a method to populate self.var_group
 # - refactor
 
 
@@ -34,11 +36,12 @@ class Controller():
     self.default_cmd = ['suricata','-D','-c',self.conf_file,'-q','0']
     self.socket = consock.ConSock('/var/run/suricata/suricata-command.socket')
 
-    self.files = Controller.__get_config_path(conf_file) 
-    #self.var_group = {}    # get valid address and port groups in config file
+    self.files = cc.get_config_path(self.conf_file) 
+    self.var_group = cc.get_config_group(self.conf_file)    # get valid address and port groups in config file
 
     self.tmp_dir = '/tmp/Suricata_controller/'
 
+  
 
   # return process id if the process is running, else False
   @staticmethod
@@ -49,12 +52,12 @@ class Controller():
     return False
 
   def __build_rule(self, rule):
-    return "{} {} {} {} {} {} {} ( msg:\"{}\"; sid:{}; gid:{}; rev:{}; )".format(
-      	rule["action"].strip(), rule["proto"].strip(),
-      	rule["src"][0].strip(), rule["src"][1],
-      	rule["dir"].strip(),
-      	rule["dst"][0].strip(), rule["dst"][1],
-      	rule['msg'].strip(), rule['sid'], rule['gid'], rule['rev'])
+    return "{}{} {} {} {} {} {} {} (msg:\"{}\"; sid:{}; gid:{};)".format('#' if not rule['enabled'] else '',
+rule["action"], rule["proto"],
+rule["src_addr"], rule["src_port"],
+rule["direction"],
+rule["dst_addr"], rule["dst_port"],
+rule['msg'], rule['sid'], rule['gid'])
 
   def __get_runtime_log(self):
     regex = '^.*<Notice>.*running in .*mode$'
@@ -91,12 +94,7 @@ class Controller():
 	'fast':'/var/log/suricata/fast.json',
 	'rule':'/var/lib/suricata/rules/suricata.rules',
 	'suricata':'/var/log/suricata/suricata.log'}
-
-  '''
-  @staticmethod
-  def __get_config_group(c_file):
-    pass
-  '''
+ 
 
 ####### Publicly accessible methods ######
 
@@ -313,18 +311,47 @@ class Controller():
     except OSError:
       out['result'] = 'NOK'
       out['error'] = 'File eve.json not found'
-    except  json.decoder.JSONDecodeError:
+    except json.decoder.JSONDecodeError:
       out['msg']['counter'] = sg
       out['msg']['time_group'] = tg
     finally:
       return out
 
-  '''
-  def rule_get(self):
-    out = {'result':'OK','msg':{}}
+  # by default reading the first 30 rules
+  def rule_get(self,page_num=0,count=30):
+    out = {'result':'OK','msg':{'rules':[]}}
     try:
       with open(self.files['rule'],'r') as f:
         rule = f.readline()
+        i = 0
         while rule:
-  '''
-          
+          if (i >= page_num * count) and (i < (page_num + 1)*count):
+            if re.match('^[ \t]*$',rule):
+              rule = f.readline()
+              continue
+            try:
+              p = parser.Parser(rule,
+		var_port=self.var_group['port'],
+		var_addr=self.var_group['addr'])
+              out['msg']['rules'].append(p.get_rule())
+            except parser.InvalidRuleError as e:
+              out['msg']['rules'].append({'error':str(e)})
+            rule = f.readline()
+            i += 1
+          elif i < page_num*count:
+            rule = f.readline()
+            continue
+          elif i >= (page_num+1)*count :
+            break
+      return out
+    except OSError: 
+      return {'result':'NOK','error':'File '+ self.files['rule']+' not found.'}
+
+
+  # NOT WORKING YET
+  def rule_add(self,rule:dict):
+    try:
+      p = parser.Validator(rule,self.var_group['port'],self.var_group['addr'])
+      return {'result':'OK','msg':self.__build_rule(rule)}
+    except parser.InvalidRuleError as e:
+      return {'result':'NOK','error':str(e)}

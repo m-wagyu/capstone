@@ -12,12 +12,22 @@ To check if the Suricata is running, use:
 
 	ps ax | grep suricata
 
-List of accessible pages:
+List of pages:
  - /home/
- - /run\_log
- - /alerts/
- - /clear\_log 
- - /stats/
+
+List of api link:
+ - /api/run\_log/
+ - /api/alerts/
+ - /api/clear\_log/
+ - /api/stats/
+ - /api/rules/
+ - /api/add\_rule/
+
+URL query parameter to access alerts:
+![/api/alerts/](docs/images/alert.png)
+
+Form to access add\_rule:
+![/api/add\_rule/](docs/images/add_rule.png)
 
 All pages other than home returns json data.
 
