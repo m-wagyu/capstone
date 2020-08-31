@@ -231,11 +231,8 @@ def check_port(s:str, group=None, validate=False, flag=False):
 
 def check_sid(sid:int):
   try:
-    if type(sid) != int:
-      s = int(sid)
-    else:
-      s = sid
-    if s < 0 or s > 65535:
+    s = int(sid)
+    if s < 0:
       return False
     else:
       return True
