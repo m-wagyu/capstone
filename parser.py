@@ -53,10 +53,16 @@ class Parser:
 
     for i in opt_list:
       if i:
-        l = i.split(':',1)
-        key,val = l[0],l[1]
+        # catch single option tag for example in sid 2010190 and 2020626
+        try:
+          l = i.split(':',1)
+          key,val = l[0],l[1]
+        except IndexError:
+          key = l[0]
+          val = ''
+
         if key == 'sid': 
-          if not check_sid(val): 
+          if not check_sid(val):
             raise InvalidRuleError('Invalid SID of \''+val+'\'')
           else:
             full['sid'] = val
