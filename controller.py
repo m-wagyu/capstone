@@ -112,6 +112,17 @@ rule['msg'], rule['sid'], rule['gid'])
       return {'result':'NOK','error':'Other error'}
     return {'result':'OK'}
 
+  # for testing /api/server_action/start
+  def proc_start2(self):
+    try:
+      self.files = cc.get_config_path(self.conf_file) 
+      self.var_group = cc.get_config_group(self.conf_file) 
+      sp.run(self.default_cmd,stdout=sp.DEVNULL)
+      sleep(0.01)
+    except Exception as e:
+      return {'result':'not-success','error':str(e)}
+    return {'result':'success'}
+
   def proc_stop(self):
     try:
       self.socket.s_connect()
