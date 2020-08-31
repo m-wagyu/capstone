@@ -29,14 +29,14 @@ const useStyles = makeStyles({
 //     {title: "Last Name", data_row_name: "last_name", title_props: {align: right, ...}, data_row_props: {...}}
 // ]
 
-export default function SuricataTableComponent({ columns, data }) {
+export default function SuricataTableComponent({ columns, data, loading }) {
 
-    // Check if column or data is empty
-    if (!columns.length || !data.length) return (<Typography variant="h5">No Columns and Data for SuricataTableComponent</Typography>)
+    // Check if column is empty
+    if (!columns.length) return (<Typography variant="h5">No Columns for SuricataTableComponent</Typography>)
 
     const classes = useStyles();
-    const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(10);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -61,7 +61,7 @@ export default function SuricataTableComponent({ columns, data }) {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {
+                            {data &&
                                 data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, key) => {
                                     return (
                                         <TableRow tabIndex={-1} key={key}>
@@ -70,9 +70,6 @@ export default function SuricataTableComponent({ columns, data }) {
                                                     return (<TableCell key={i} {...each.data_row_props}>{row[each.data_row_name]}</TableCell>)
                                                 })
                                             }
-                                            {/* <TableCell component="th" scope="row">{row.time}</TableCell>
-                                            <TableCell align="center">{row.type}</TableCell>
-                                            <TableCell align="right">{row.message}</TableCell> */}
                                         </TableRow>
                                     );
                                 })
