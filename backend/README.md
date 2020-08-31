@@ -43,3 +43,33 @@ in sample\_file folder.
 4. ```npm run dev``` build for development.
 5. ```npm run build``` build for production.
 5. Run Suricata Server ```sudo ./backend/main.py```
+
+
+
+
+REST API
+
+GET /home - return HTML
+GET /api/alerts {page: number, count: number} - return JSON
+GET /api/clear_log - return JSON
+GET /api/stats - return JSON
+GET /api/rules - return JSON
+
+POST /home form-data {
+	function: proc_stop|proc_reload|proc_start
+}
+POST /api/add_rule form-data {
+	enable: "True"|"False"
+	action: pass|reject|drop|alert
+	proto: udp|tcp|icmp|ip
+	src_address: IP_ADDRESS 
+	src_port: any
+	dst_addr: $HOME_NET
+	dst_port: any
+	direction: ->|<>
+	msg: hello world
+	sid: 100
+	gid: 1
+}
+
+
