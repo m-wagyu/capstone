@@ -1,5 +1,4 @@
 __pycache__/
-templates/stats.html
 test*.py
 controller2.py
 *.swp
