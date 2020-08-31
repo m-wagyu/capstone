@@ -4,8 +4,8 @@
     "description": "Internetworking Project 2020 with Matthew Tee, Wahyu Ismainem, Munif Akanda and Manjue Ruan",
     "main": "index.js",
     "scripts": {
-        "dev": "webpack --mode development",
-        "start": "webpack --mode development --watch",
+        "start": "webpack --mode development",
+        "watch": "webpack --mode development --watch",
         "build": "webpack --mode production"
     },
     "repository": {
@@ -22,7 +22,9 @@
         "@material-ui/core": "^5.0.0-alpha.7",
         "@material-ui/icons": "^4.9.1",
         "@material-ui/lab": "^4.0.0-alpha.56",
+        "axios": "^0.20.0",
         "bootstrap": "^4.5.2",
+        "form-data": "^3.0.0",
         "react": "^16.13.1",
         "react-bootstrap": "^1.3.0",
         "react-dom": "^16.13.1"
