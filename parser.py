@@ -12,7 +12,7 @@ class InvalidRuleError(Exception):
 
 class Parser:
   def __init__(self, rule:str, var_port:list, var_addr:list, line_num:int):
-    self.rule = re.split('\(',rule)	# rule[0] = action & header, rule[1] = options
+    self.rule = re.split('\(',rule,maxsplit=1)	# rule[0] = action & header, rule[1] = options
     self.vp = var_port #self.esc_vars(var_port) #['$HOME_NET','$EXTERNAL_NET']
     self.va = var_addr #self.esc_vars(var_addr)  #['$HTTP_PORT','$TELNET_PORT']
     self.out = {'enable':None,'action':None,'header':None,'option':None}
