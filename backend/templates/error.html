@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block head %}
+
+<title>Error page</title>
+
+{% endblock %}
+
+{% block body %}
+
+<div class='container'>
+  <h2>Something is wrong</h2>
+  <p>The program says:</p>
+  <p>{{ error_message }}</p>
+  <p>Click here to return to the home page</p>
+</div>
+
+{% endblock %}

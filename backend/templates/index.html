@@ -1,14 +1,49 @@
-<!DOCTYPE html>
-<html>
+{% extends 'base.html' %}
+{% block head %}
 
-<head>
-    <title>Suricata NIDS Control</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
-</head>
+<title>Home page</title>
+<script src="{{ url_for('static',filename='js/main.js')}}"></script>
 
-<body>
-    <div id="app"></div>
-    <script src="/static/bundle.js"></script>
-</body>
+{% endblock %}
 
-</html>
+{% block body%}
+
+<div class='container'>
+  {% if status == 'Running' %}
+  <p>Status: <strong style='color:#00DD00'>{{status}}</strong></p>
+  {% elif status == 'Stopped' %}
+  <p>Status: <strong style='color:#DD0000'>{{status}}</strong></p>
+  {% endif %}
+  <form action='#' method='post'>
+    {% if status == 'Running' %}
+    <button type='submit' name='function' value='proc_stop'>Terminate</button>
+    <button type='submit' name='function' value='proc_reload'>Reload</button>
+    {% else %}
+    <button type='submit' name='function' value='proc_start'>Start</button>
+    {% endif %}
+  </form>
+
+  <div id='logs'>
+  <table>
+  <thead>
+    <tr>
+      <th>Time</th>
+      <th>Type</th>
+      <th>Message</th>
+    </tr>
+  </thead>
+  <tbody> 
+    {% for i in logs['msg'] %}
+    <tr>
+        <td>{{ i['ts'] }}</td>
+        <td>{{ i['type'] }}</td>
+        <td>{{ i['msg'] }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  </table>
+  <button id='reload_btn'>Reload</button>
+  </div>
+</div>
+
+{% endblock %}
