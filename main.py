@@ -131,9 +131,19 @@ def stats():
 
 @app.route('/api/rules/',methods=['GET'])
 def rules():
-  out = s.rule_get()
-  if out['result'] == 'OK':
-    return jsonify(out)
+  try:
+    page = int(request.args.get('page'))
+    count = int(request.args.get('count'))
+    out = s.rule_get(page,count)
+  except (ValueError, TypeError):
+    page = 0
+    count = 30
+    out = s.rule_get(page,count)
+  finally:
+    if out['result'] == 'OK':
+      return jsonify(out)
+    else:
+      abort(500)
 
 @app.route('/api/add_rule/',methods=['POST'])
 def rule_add():

@@ -318,8 +318,8 @@ rule['msg'], rule['sid'], rule['gid'])
       return out
 
   # by default reading the first 30 rules
-  def rule_get(self,page_num=0,count=30):
-    out = {'result':'OK','msg':{'rules':[]}}
+  def rule_get(self,page_num,count):
+    out = {'result':'OK','msg':{'rules':[],'total':None}}
     try:
       with open(self.files['rule'],'r') as f:
         rule = f.readline()
@@ -333,17 +333,17 @@ rule['msg'], rule['sid'], rule['gid'])
               p = parser.Parser(rule,
 		var_port=self.var_group['port'],
 		var_addr=self.var_group['addr'],
-                line_num=i)
+                line_num=i+1)
               out['msg']['rules'].append(p.get_rule())
             except parser.InvalidRuleError as e:
               out['msg']['rules'].append({'error':str(e)})
             rule = f.readline()
             i += 1
-          elif i < page_num*count:
+          elif (i < page_num*count) or (i >= (page_num+1)*count) :
             rule = f.readline()
+            i += 1
             continue
-          elif i >= (page_num+1)*count :
-            break
+      out['msg']['total'] = i
       return out
     except OSError: 
       return {'result':'NOK','error':'File '+ self.files['rule']+' not found.'}
