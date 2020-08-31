@@ -45,20 +45,18 @@ in sample\_file folder.
 5. Run Suricata Server ```sudo ./backend/main.py```
 
 
+# REST API
 
+* GET /home - return HTML
+* GET /api/alerts {page: number, count: number} - return JSON
+* GET /api/clear_log - return JSON
+* GET /api/stats - return JSON
+* GET /api/rules - return JSON
 
-REST API
-
-GET /home - return HTML
-GET /api/alerts {page: number, count: number} - return JSON
-GET /api/clear_log - return JSON
-GET /api/stats - return JSON
-GET /api/rules - return JSON
-
-POST /home form-data {
+* POST /home ```form-data {
 	function: proc_stop|proc_reload|proc_start
-}
-POST /api/add_rule form-data {
+}```
+* POST /api/add_rule ```form-data {
 	enable: "True"|"False"
 	action: pass|reject|drop|alert
 	proto: udp|tcp|icmp|ip
@@ -70,6 +68,6 @@ POST /api/add_rule form-data {
 	msg: hello world
 	sid: 100
 	gid: 1
-}
+}```
 
 
