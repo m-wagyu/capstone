@@ -1,8 +1,20 @@
+def build_proto(*args):
+  s = ''
+  for i in args:
+    for j in i:
+      s = s+'|'+j
+  s = s[1:]
+  return '('+s+')'
+
+
 #action_re = '^ *(pass|drop|reject|alert)\ +'
 action_re = '(pass|drop|reject|alert)'
 
+basic_proto = ['icmp','tcp','udp','ip']
+app_layer_proto = ['http','ftp','tls','smb','dns','dcerpc','ssh','smtp','imap','nfs','dhcp','ikev2','ntp','krb5','ftp-data']
+
 #proto_re = '^(icmp|tcp|udp|ip)\ +'
-proto_re = '(icmp|tcp|udp|ip)'
+proto_re = build_proto(basic_proto,app_layer_proto)
 
 #dir_re = '^(-\>|\<\>)\ +'
 dir_re = '(-\>|\<\>)'
