@@ -1,0 +1,40 @@
+{
+    "name": "capstone-react-frontend",
+    "version": "1.0.0",
+    "description": "Internetworking Project 2020 with Matthew Tee, Wahyu Ismainem, Munif Akanda and Manjue Ruan",
+    "main": "index.js",
+    "scripts": {
+        "dev": "webpack --mode development",
+        "start": "webpack --mode development --watch",
+        "build": "webpack --mode production"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/m-wagyu/capstone.git"
+    },
+    "author": "Matthew Tee, Wahyu Ismainem, Munif Akanda and Manjue Ruan",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/m-wagyu/capstone/issues"
+    },
+    "homepage": "https://github.com/m-wagyu/capstone#readme",
+    "dependencies": {
+        "@material-ui/core": "^5.0.0-alpha.7",
+        "@material-ui/icons": "^4.9.1",
+        "@material-ui/lab": "^4.0.0-alpha.56",
+        "bootstrap": "^4.5.2",
+        "react": "^16.13.1",
+        "react-bootstrap": "^1.3.0",
+        "react-dom": "^16.13.1"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.11.4",
+        "@babel/preset-env": "^7.11.0",
+        "@babel/preset-react": "^7.10.4",
+        "babel-loader": "^8.1.0",
+        "css-loader": "^4.2.2",
+        "style-loader": "^1.2.1",
+        "webpack": "^4.44.1",
+        "webpack-cli": "^3.3.12"
+    }
+}
