@@ -332,7 +332,8 @@ rule['msg'], rule['sid'], rule['gid'])
             try:
               p = parser.Parser(rule,
 		var_port=self.var_group['port'],
-		var_addr=self.var_group['addr'])
+		var_addr=self.var_group['addr'],
+                line_num=i)
               out['msg']['rules'].append(p.get_rule())
             except parser.InvalidRuleError as e:
               out['msg']['rules'].append({'error':str(e)})

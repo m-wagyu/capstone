@@ -11,7 +11,7 @@ class InvalidRuleError(Exception):
 #################### Parser class for 'rule_get' #####################
 
 class Parser:
-  def __init__(self, rule:str, var_port:list, var_addr:list):
+  def __init__(self, rule:str, var_port:list, var_addr:list, line_num:int):
     self.rule = re.split('\(',rule)	# rule[0] = action & header, rule[1] = options
     self.vp = var_port #self.esc_vars(var_port) #['$HOME_NET','$EXTERNAL_NET']
     self.va = var_addr #self.esc_vars(var_addr)  #['$HTTP_PORT','$TELNET_PORT']
@@ -22,7 +22,7 @@ class Parser:
     self.header = self.parse_header()
     self.option = self.parse_option()
 
-    self.out = {'enable':self.enable,'action':self.action,'header':self.header,'option':self.option}
+    self.out = {'number':line_num,'enable':self.enable,'action':self.action,'header':self.header,'option':self.option}
 
 
   def is_enabled(self):
