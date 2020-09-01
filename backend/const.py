@@ -1,5 +1,5 @@
 def build_proto(*args):
-      s = ''
+  s = ''
   for i in args:
     for j in i:
       s = s+'|'+j
