@@ -11,8 +11,8 @@ class InvalidRuleError(Exception):
 #################### Parser class for 'rule_get' #####################
 
 class Parser:
-  def __init__(self, rule:str, var_port:list, var_addr:list):
-    self.rule = re.split('\(',rule)	# rule[0] = action & header, rule[1] = options
+  def __init__(self, rule:str, var_port:list, var_addr:list, line_num:int):
+    self.rule = re.split('\(',rule,maxsplit=1)	# rule[0] = action & header, rule[1] = options
     self.vp = var_port #self.esc_vars(var_port) #['$HOME_NET','$EXTERNAL_NET']
     self.va = var_addr #self.esc_vars(var_addr)  #['$HTTP_PORT','$TELNET_PORT']
     self.out = {'enable':None,'action':None,'header':None,'option':None}
@@ -22,7 +22,7 @@ class Parser:
     self.header = self.parse_header()
     self.option = self.parse_option()
 
-    self.out = {'enable':self.enable,'action':self.action,'header':self.header,'option':self.option}
+    self.out = {'number':line_num,'enable':self.enable,'action':self.action,'header':self.header,'option':self.option}
 
 
   def is_enabled(self):
@@ -53,10 +53,16 @@ class Parser:
 
     for i in opt_list:
       if i:
-        l = i.split(':',1)
-        key,val = l[0],l[1]
+        # catch single option tag for example in sid 2010190 and 2020626
+        try:
+          l = i.split(':',1)
+          key,val = l[0],l[1]
+        except IndexError:
+          key = l[0]
+          val = ''
+
         if key == 'sid': 
-          if not check_sid(val): 
+          if not check_sid(val):
             raise InvalidRuleError('Invalid SID of \''+val+'\'')
           else:
             full['sid'] = val
@@ -231,11 +237,8 @@ def check_port(s:str, group=None, validate=False, flag=False):
 
 def check_sid(sid:int):
   try:
-    if type(sid) != int:
-      s = int(sid)
-    else:
-      s = sid
-    if s < 0 or s > 65535:
+    s = int(sid)
+    if s < 0:
       return False
     else:
       return True

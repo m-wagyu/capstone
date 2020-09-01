@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 from flask import Flask, request, render_template, redirect, url_for, jsonify, abort
+from flask_cors import CORS, cross_origin
 from controller import Controller
 from time import sleep
 
@@ -8,6 +9,13 @@ from time import sleep
 # - add config file argument
 
 app = Flask(__name__)
+CORS(app)
+cors = CORS(app, resources={
+r'/api/server_action/*' : {
+	'origins': 'http://localhost:5000'
+	}
+})
+
 
 @app.route('/',methods=['POST', 'GET'])
 def root():
@@ -70,10 +78,19 @@ def home():
       else:
         abort(409)
         #error_message = 'Suricata is not running'
-
     else:
       abort(400)
       #error_message = 'Requesting unknown function'
+
+
+@app.route('/api/server_action/start',methods=['GET'])
+def start():
+  is_run = Controller.proc_is_run()
+  if is_run:
+    return jsonify({'result':'not-success','error':'Suricata is already running'})
+  return jsonify(s.proc_start2())
+  #return jsonify(s.proc_start2()).header.add('Access-Control-Alow-Origin',site)
+
 
 @app.route('/api/run_log/',methods=['GET'])
 def run_log():
@@ -131,9 +148,19 @@ def stats():
 
 @app.route('/api/rules/',methods=['GET'])
 def rules():
-  out = s.rule_get()
-  if out['result'] == 'OK':
-    return jsonify(out)
+  try:
+    page = int(request.args.get('page'))
+    count = int(request.args.get('count'))
+    out = s.rule_get(page,count)
+  except (ValueError, TypeError):
+    page = 0
+    count = 30
+    out = s.rule_get(page,count)
+  finally:
+    if out['result'] == 'OK':
+      return jsonify(out)
+    else:
+      abort(500)
 
 @app.route('/api/add_rule/',methods=['POST'])
 def rule_add():
