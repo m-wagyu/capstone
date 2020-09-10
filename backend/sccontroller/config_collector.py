@@ -1,4 +1,6 @@
 import yaml
+import sys
+
 # return eve log, fast log, suricata log, rule file and controller socket path
 def get_config_path(cf:str):
   out = {}
@@ -26,4 +28,6 @@ def get_config_group(cf:str):
     out['port'].append('$'+i)
   f.close()
   return out
+
+
 

@@ -15,7 +15,7 @@ INC_SIZE = 1024
 class CmdReturnNOKException:
   pass
 
-class ConSock:
+class ControlSocket:
   def __init__(self, consock_path, verbose=False):
     self.consock_path = consock_path
     self.socket = socket(AF_UNIX)
