@@ -4,10 +4,6 @@ from flask_cors import CORS, cross_origin
 from . import sccontrol
 from time import sleep
 
-# TODO:
-# - add port argument
-# - add config file argument
-
 app = Flask(__name__)
 CORS(app)
 cors = CORS(app, resources={
@@ -17,70 +13,40 @@ r'/api/server_action/*' : {
 })
 
 
-@app.route('/',methods=['POST', 'GET'])
+@app.route('/',methods=['GET'])
 def root():
-  return redirect(url_for('home'))
+  return redirect(url_for('server_status'))
 
-@app.route('/home/',methods=['POST', 'GET'])
-def home():
-  if request.method == "GET":
-    is_run = s.proc_is_run()
-    f = 'proc_stop' if is_run else 'proc_start'
-    l = s.log_get()
-    return render_template('index.html',
-  		status = 'Running' if is_run else 'Stopped',
-  		function = f,
-  		logs = l)
-
+@app.route('/api/server_action/',methods=['POST'])
+def server_action():
   if request.method == "POST":
     is_run = s.proc_is_run()
     f = request.form['function']
     if f == 'proc_stop':
-      if is_run:
-        out = s.proc_stop()
-        if out['result'] == 'success':
-          status = 'Stopped'
-          logs = s.log_get()
-          return render_template('index.html',status=status,logs=logs)
-        else:
-          abort(500)
-          #error_message = 'Failed to terminate Suricata due to '+out['error']
+      if is_run['result'] == 'success':
+        return jsonify(s.proc_stop())
       else:
-        status = 'Stopped'
-        logs = s.log_get()
-        return render_template('index.html',status=status,logs=logs)
+        return jsonify({'result':'not-success','error':'Suricata is not running'})
 
     elif f == 'proc_start':
-      if not is_run:
-        out = s.proc_start()
-        if out['result'] == 'success':
-          status = 'Running'
-          logs = s.log_get()
-          return render_template('index.html',status=status,logs=logs)
-        else:
-          abort(500)
-          #error_message = 'Failed to start Suricata due to '+out['error']
+      if is_run['result'] == 'not-success':
+        return jsonify(s.proc_start())
       else:
-        status = 'Running'
-        logs = s.log_get()
-        return render_template('index.html',status=status,logs=logs)
+        return jsonify({'result':'not-success','error':'Suricata is already running'})
 
     elif f == 'proc_reload':
-      if is_run:
-        out = s.proc_reload()
-        if out['result'] == 'success':
-          status = 'Running'
-          logs = s.log_get()
-          return render_template('index.html',status=status,logs=logs)
-        else:
-          abort(500)
-          #error_message = 'Failed to reload Suricata due to '+out['error']
+      if is_run['result'] == 'success':
+        return jsonify(s.proc_reload())
       else:
-        abort(409)
-        #error_message = 'Suricata is not running'
+        return jsonify({'result':'not-success','error':'Suricata is not running'})
+
     else:
-      abort(400)
-      #error_message = 'Requesting unknown function'
+      return jsonify({'result':'not-success','error':'Invalid function'})
+
+
+@app.route('/api/server_status/',methods=['GET'])
+def server_status():
+  return jsonify(s.proc_is_run())
 
 
 @app.route('/api/run_log/',methods=['GET'])

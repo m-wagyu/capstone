@@ -35,18 +35,18 @@ class Controller():
 
   def proc_is_run(self):
     if self.__proc_pid():
-      return {'return':'success'}
-    return {'return':'not-success'}
+      return {'result':'success'}
+    return {'result':'not-success'}
 
 
   def proc_start(self):
     try:
       self.files = cc.get_config_path(self.sc_conf_file)
-      self.var_group = cc.get_var_group(self.sc_conf_file)
+      self.var_group = cc.get_config_group(self.sc_conf_file)
       sp.run(self.default_cmd, stdout=sp.DEVNULL, stderr= sp.DEVNULL)
       time.sleep(0.01)
     except Exception as e:
-      return {'return': 'not-success', 'error':str(e)}
+      return {'result': 'not-success', 'error':str(e)}
     return {'result':'success'}
 
 

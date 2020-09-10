@@ -28,6 +28,3 @@ def get_config_group(cf:str):
     out['port'].append('$'+i)
   f.close()
   return out
-
-
-
