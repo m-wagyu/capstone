@@ -1,4 +1,4 @@
-from const import * 
+from .. import regex
 import re
 
 class InvalidRuleError(Exception):
@@ -107,43 +107,43 @@ class Validator():
 
 
 # consider using 
-# `act = starts_with(action_re,s,flag=validate)`
+# `act = starts_with(regex.action_re,s,flag=validate)`
 # for action,proto,direction,address.
 # left the port like that.
 def check_action(s:str, validate=False):
   if validate:
-    act = starts_with(action_re,s,flag=True)
+    act = starts_with(regex.action_re,s,flag=True)
   else:
-    act = starts_with(action_re,s)
+    act = starts_with(regex.action_re,s)
 
   if act:
     if validate: return True
-    return act, strip_beginning(action_re,s)
+    return act, strip_beginning(regex.action_re,s)
   else:
     if validate: return False
     raise InvalidRuleError('Invalid action on \''+s+'\'')
 
 def check_proto(s:str, validate=False):
   if validate:
-    proto = starts_with(proto_re,s,flag=True)
+    proto = starts_with(regex.proto_re,s,flag=True)
   else:
-    proto = starts_with(proto_re,s)
+    proto = starts_with(regex.proto_re,s)
 
   if proto:
     if validate: return True
-    return proto, strip_beginning(proto_re,s)
+    return proto, strip_beginning(regex.proto_re,s)
   else:
     if validate: return False
     raise InvalidRuleError('Invalid protocol on \''+s+'\'')
 
 def check_direction(s:str, validate=False):
   if validate:
-    d = starts_with(dir_re,s,flag=True)
+    d = starts_with(regex.dir_re,s,flag=True)
   else:
-    d = starts_with(dir_re,s)
+    d = starts_with(regex.dir_re,s)
   if d:
     if validate: return True
-    return d, strip_beginning(dir_re,s)
+    return d, strip_beginning(regex.dir_re,s)
   else:
     if validate: return False
     raise InvalidRuleError('Invalid direction on \''+s+'\'')
@@ -160,23 +160,23 @@ def check_address(s:str, group=None, validate=False, depth=None):
 
   # match ipv4
   if validate:
-    add = starts_with(ipv4_re,s,flag=True)
+    add = starts_with(regex.ipv4_re,s,flag=True)
   else:
-    add = starts_with(ipv4_re,s)
+    add = starts_with(regex.ipv4_re,s)
 
   if add:
     if validate: return True
-    return '!'+add if negate else add, strip_beginning(ipv4_re,s)
+    return '!'+add if negate else add, strip_beginning(regex.ipv4_re,s)
 
   #match ipv6
   if validate:
-    add = starts_with(ipv6_re,s,flag=True)
+    add = starts_with(regex.ipv6_re,s,flag=True)
   else:
-    add = starts_with(ipv6_re,s)
+    add = starts_with(regex.ipv6_re,s)
 
   if add:
     if validate: return True
-    return '!'+add if negate else add, strip_beginning(ipv6_re,s)
+    return '!'+add if negate else add, strip_beginning(regex.ipv6_re,s)
 
   #match group
   for i in group:

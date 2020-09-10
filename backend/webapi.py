@@ -1,7 +1,7 @@
 #!/usr/bin/python3
-from flask import Flask, request, render_template, redirect, url_for, jsonify, abort
+from flask import Flask, request, redirect, url_for, jsonify, abort
 from flask_cors import CORS, cross_origin
-from controller import Controller
+from . import sccontrol
 from time import sleep
 
 # TODO:
@@ -24,7 +24,7 @@ def root():
 @app.route('/home/',methods=['POST', 'GET'])
 def home():
   if request.method == "GET":
-    is_run = Controller.proc_is_run()
+    is_run = s.proc_is_run()
     f = 'proc_stop' if is_run else 'proc_start'
     l = s.log_get()
     return render_template('index.html',
@@ -33,12 +33,12 @@ def home():
   		logs = l)
 
   if request.method == "POST":
-    is_run = Controller.proc_is_run()
+    is_run = s.proc_is_run()
     f = request.form['function']
     if f == 'proc_stop':
       if is_run:
         out = s.proc_stop()
-        if out['result'] == 'OK':
+        if out['result'] == 'success':
           status = 'Stopped'
           logs = s.log_get()
           return render_template('index.html',status=status,logs=logs)
@@ -53,7 +53,7 @@ def home():
     elif f == 'proc_start':
       if not is_run:
         out = s.proc_start()
-        if out['result'] == 'OK':
+        if out['result'] == 'success':
           status = 'Running'
           logs = s.log_get()
           return render_template('index.html',status=status,logs=logs)
@@ -68,7 +68,7 @@ def home():
     elif f == 'proc_reload':
       if is_run:
         out = s.proc_reload()
-        if out['result'] == 'OK':
+        if out['result'] == 'success':
           status = 'Running'
           logs = s.log_get()
           return render_template('index.html',status=status,logs=logs)
@@ -83,19 +83,10 @@ def home():
       #error_message = 'Requesting unknown function'
 
 
-@app.route('/api/server_action/start',methods=['GET'])
-def start():
-  is_run = Controller.proc_is_run()
-  if is_run:
-    return jsonify({'result':'not-success','error':'Suricata is already running'})
-  return jsonify(s.proc_start2())
-  #return jsonify(s.proc_start2()).header.add('Access-Control-Alow-Origin',site)
-
-
 @app.route('/api/run_log/',methods=['GET'])
 def run_log():
   out = s.log_get()
-  if out['result'] == 'OK':
+  if out['result'] == 'success':
     return jsonify(out)
   else:
     abort(500)
@@ -122,7 +113,7 @@ def alert():
   else:
     count_per_page = 30
   out = s.alert_get(page_num,count_per_page)
-  if out['result'] == 'OK':
+  if out['result'] == 'success':
     return jsonify(out)
   #else:
     #abort(500)
@@ -131,7 +122,7 @@ def alert():
 @app.route('/api/clear_log/',methods=['GET'])
 def clear_log():
   out = s.alert_clear()
-  if out['result'] == 'OK':
+  if out['result'] == 'success':
     return jsonify(out)
   #else:
     #abort(500)
@@ -140,7 +131,7 @@ def clear_log():
 @app.route('/api/stats/',methods=['GET'])
 def stats():
   out = s.stats_get()
-  if out['result'] == 'OK':
+  if out['result'] == 'success':
     return jsonify(out)
   #else:
     #abort(500)
@@ -156,11 +147,10 @@ def rules():
     page = 0
     count = 30
     out = s.rule_get(page,count)
-  finally:
-    if out['result'] == 'OK':
-      return jsonify(out)
-    else:
-      abort(500)
+  if out['result'] == 'success':
+    return jsonify(out)
+  else:
+    abort(500)
 
 @app.route('/api/add_rule/',methods=['POST'])
 def rule_add():
@@ -178,10 +168,10 @@ def rule_add():
   rule['gid'] = request.form['gid'] # value=<an integer>
 
   out = s.rule_add(rule)
-  if out['result'] == 'OK':
+  if out['result'] == 'success':
     return jsonify(out)
 
 
-s = Controller(conf_file='/etc/suricata/suricata.yaml')
+s = sccontrol.Controller(sc_conf_file='/etc/suricata/suricata.yaml')
 ##### remove debug mode on final version !!! #####
 app.run(debug=True)

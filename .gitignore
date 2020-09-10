@@ -15,3 +15,6 @@
 .cache
 .eslintcache
 package-lock.json
+*/__pycache__/*
+*.swp
+backend/tests
