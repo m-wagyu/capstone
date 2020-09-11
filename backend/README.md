@@ -12,10 +12,9 @@ To check if the Suricata is running, use:
 
 	ps ax | grep suricata
 
-List of pages:
- - /home/
-
 List of api link:
+ - /api/server\_status/
+ - /api/server\_action/
  - /api/run\_log/
  - /api/alerts/
  - /api/clear\_log/
@@ -29,11 +28,7 @@ URL query parameter to access alerts:
 Form to access add\_rule:
 ![/api/add\_rule/](docs/images/add_rule.png)
 
-All pages other than home returns json data.
-
-In case you accessing the /alert/clear\_log. Your eve.json and fast.log
-file will be emptied. I have prepared sample page for eve.json and fast.log
-in sample\_file folder.
+All URL returns json data.
 
 # Frontend Webpack Compile
 
@@ -47,13 +42,13 @@ in sample\_file folder.
 
 # REST API
 
-* GET /home - return HTML
+* GET /api/server_status - return JSON
 * GET /api/alerts {page: number, count: number} - return JSON
 * GET /api/clear_log - return JSON
 * GET /api/stats - return JSON
 * GET /api/rules - return JSON
 
-* POST /home ```form-data {
+* POST /api/server_action ```form-data {
 	function: proc_stop|proc_reload|proc_start
 }```
 * POST /api/add_rule ```form-data {
