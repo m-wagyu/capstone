@@ -18,3 +18,4 @@ package-lock.json
 */__pycache__/*
 *.swp
 backend/tests
+env

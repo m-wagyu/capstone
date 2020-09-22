@@ -4,19 +4,21 @@ import subprocess as sp
 import time
 import re
 
-from .sccontroller.analyzer import alert as alert_mod, rule as rule_mod
-from .sccontroller.scsocket import control_socket
-from .sccontroller import config_collector as cc
+from .src.sccontroller.analyzer import alert as alert_mod, rule as rule_mod
+from .src.sccontroller.scsocket import control_socket
+from .src.sccontroller import sc_config_reader as cc
+from . import config_reader as cr
 
 
 class Controller():
 
-  def __init__(self, sc_conf_file:str):
-    self.sc_conf_file = sc_conf_file
+  def __init__(self):
+    self.sc_conf_file = cr.get_sc_config()
+    print(self.sc_conf_file)
 
-    #self.default_cmd = cc.get_sc_args()  # get from backend/controller.cfg
-    self.default_cmd = ['suricata','-D','-c',self.sc_conf_file,'-q','0']
-    #self.socket = control_socket.ControlSocket(......get_socket_file)
+    cmd_addition = cr.get_sc_param()
+    self.default_cmd = ['suricata','-D','-c',self.sc_conf_file] + cmd_addition
+    print(self.default_cmd)
     self.socket = control_socket.ControlSocket('/var/run/suricata/suricata-command.socket')
     
     self.files = cc.get_config_path(self.sc_conf_file)
@@ -28,7 +30,6 @@ class Controller():
       if proc.name().lower().startswith('suricata'):
         return proc.pid
     return None
-
 
 ###### Public Accessible ######
 
