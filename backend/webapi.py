@@ -1,8 +1,10 @@
 #!/usr/bin/python3
 from flask import Flask, request, redirect, url_for, jsonify, abort
 from flask_cors import CORS, cross_origin
-from . import sccontrol
 from time import sleep
+
+from . import sccontroller
+from . import config_reader as cr
 
 app = Flask(__name__)
 CORS(app)
@@ -138,6 +140,9 @@ def rule_add():
     return jsonify(out)
 
 
-s = sccontrol.Controller(sc_conf_file='/etc/suricata/suricata.yaml')
+s = sccontroller.Controller()
 ##### remove debug mode on final version !!! #####
-app.run(debug=True)
+sock_addr = cr.get_socket_addr()
+app.run(debug=True,
+        host=sock_addr[0],
+        port=sock_addr[1])

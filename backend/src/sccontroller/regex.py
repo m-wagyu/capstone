@@ -1,20 +1,25 @@
-def build_proto(*args):
+def build(*args):
   s = ''
   for i in args:
-    for j in i:
-      s = s+'|'+j
+    if type(i) == list:
+      for j in i:
+        s = s+'|'+j
+    elif type(i) == str:
+      s = s+'|'+j   
   s = s[1:]
   return '('+s+')'
 
 
 #action_re = '^ *(pass|drop|reject|alert)\ +'
-action_re = '(pass|drop|reject|alert)'
+#action_re = '(pass|drop|reject|alert)'
+actions = ['pass','drop','reject','alert']
+action_re = build(actions)
 
-basic_proto = ['icmp','tcp','udp','ip']
-app_layer_proto = ['http','ftp','tls','smb','dns','dcerpc','ssh','smtp','imap','nfs','dhcp','ikev2','ntp','krb5','ftp-data']
+basic_protos = ['icmp','tcp','udp','ip']
+app_layer_protos = ['http','ftp','tls','smb','dns','dcerpc','ssh','smtp','imap','nfs','dhcp','ikev2','ntp','krb5','ftp-data','pkthdr']
 
 #proto_re = '^(icmp|tcp|udp|ip)\ +'
-proto_re = build_proto(basic_proto,app_layer_proto)
+proto_re = build(basic_protos,app_layer_protos)
 
 #dir_re = '^(-\>|\<\>)\ +'
 dir_re = '(-\>|\<\>)'
