@@ -14,11 +14,8 @@ class Controller():
 
   def __init__(self):
     self.sc_conf_file = cr.get_sc_config()
-    print(self.sc_conf_file)
-
     cmd_addition = cr.get_sc_param()
     self.default_cmd = ['suricata','-D','-c',self.sc_conf_file] + cmd_addition
-    print(self.default_cmd)
     self.socket = control_socket.ControlSocket('/var/run/suricata/suricata-command.socket')
     
     self.files = cc.get_config_path(self.sc_conf_file)
@@ -265,7 +262,12 @@ class Controller():
 
   def rule_add(self,rule:dict):
     try:
-      p = rule.Validator(rule, self.var_group['port'], self.var_group['addr'])
-      return {'result':'success','msg':self.__build_rule(rule)}
-    except parser.InvalidRuleError as e:
+      rule_mod.Validator(rule, self.var_group['addr'], self.var_group['port'])
+      r = rule_mod.build_rule(rule)+'\n'
+      with open(self.files['rule'], 'a') as f:
+        f.write(r)
+      return {'result':'success','msg':r}
+    except rule_mod.InvalidRuleError as e:
       return {'result':'not-success','error':str(e)}
+    except OSError:
+      return {'result':'not-success','error':'Error while appending rule'}

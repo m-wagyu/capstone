@@ -84,7 +84,7 @@ class Parser:
 
 
 class Validator():
-  def __init__(self,rule:dict, var_port:list, var_addr:list):
+  def __init__(self,rule:dict, var_addr:list , var_port:list):
     self.rule = rule
     self.vp = var_port #self.esc_vars(var_port) #['$HOME_NET','$EXTERNAL_NET']
     self.va = var_addr #self.esc_vars(var_addr)  #['$HTTP_PORT','$TELNET_PORT']
@@ -97,10 +97,6 @@ class Validator():
     if not check_direction(self.rule['direction'],validate=True): raise InvalidRuleError('Invalid direction '+self.rule['direction'])
     if not check_sid(self.rule['sid']): raise InvalidRuleError('Invalid SID '+self.rule['sid'])
     if not check_gid(self.rule['gid']): raise InvalidRuleError('Invalid GID '+self.rule['gid'])
-    self.rule['msg'] = re.escape(self.rule['msg'])
-  
-  def is_valid(self):
-    return True
 
 
 #################### Check functions #####################
@@ -241,6 +237,7 @@ def check_sid(sid:int):
     if s < 0:
       return False
     else:
+      #return is_duplicate(s)
       return True
   except Exception:
     return False
@@ -273,3 +270,15 @@ def starts_with(regx, string, flag=False):
 
 def strip_beginning(regx, string):
   return re.sub('^'+regx+' +','',string)
+
+
+
+def build_rule(rule:dict):
+    return '{}{} {} {} {} {} {} {} (msg:"{}";sid:{};gid:{};)' .format(
+          '' if rule['enabled'] == "True" else '#',
+          rule['action'], rule['proto'],
+          rule['src_addr'], rule['src_port'],
+          rule['direction'],
+          rule['dst_addr'], rule['dst_port'],
+          rule['msg'], rule['sid'], rule['gid']
+          )
