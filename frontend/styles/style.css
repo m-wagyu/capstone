@@ -1,0 +1,13 @@
+.addRulesIcon {
+    transition-duration: 0.3s;
+    -webkit-transition-duration: 0.3s;
+    -moz-transition-duration: 0.3s;
+    -o-transition-duration: 0.3s;
+}
+
+.addRulesIconToClose {
+    transform: rotate(-45deg);
+    -webkit-transition-transform: rotate(-45deg);
+    -moz-transition-transform: rotate(-45deg);
+    -o-transition-transform: rotate(-45deg);
+}

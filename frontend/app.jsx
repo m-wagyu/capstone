@@ -14,7 +14,7 @@ import TabComponents from './components/TabComponents.jsx'
 
 export default function App() {
 
-    const [value, setValue] = useState('1');
+    const [value, setValue] = useState('rules');
     const [showLoading, setShowLoading] = useState(false)
 
     const handleChange = (event, newValue) => {
@@ -29,17 +29,17 @@ export default function App() {
                 <TabContext value={value}>
                     <Paper>
                         <TabList onChange={handleChange} indicatorColor="primary" textColor="primary">
-                            <Tab label="Home" value="1" />
-                            <Tab label="Alert" value="2" />
-                            <Tab label="Stats" value="3" />
-                            <Tab label="Rules" value="4" />
+                            <Tab label="Home" value="home" />
+                            <Tab label="Alert" value="alert" />
+                            <Tab label="Stats" value="stats" />
+                            <Tab label="Rules" value="rules" />
                         </TabList>
                     </Paper>
                     <LinearProgress color="secondary" className={showLoading ? "d-block" : "d-none"} />
-                    <TabPanel value="1" className="p-3"><TabComponents.Home setShowLoading={setShowLoading} showLoading={showLoading} /></TabPanel>
-                    <TabPanel value="2" className="p-3"><TabComponents.Alert setShowLoading={setShowLoading} showLoading={showLoading} /></TabPanel>
-                    <TabPanel value="3" className="p-3"><TabComponents.Stats setShowLoading={setShowLoading} showLoading={showLoading} /></TabPanel>
-                    <TabPanel value="4" className="p-3"><TabComponents.Rules setShowLoading={setShowLoading} showLoading={showLoading} /></TabPanel>
+                    <TabPanel value="home" className="px-0"><TabComponents.Home setShowLoading={setShowLoading} showLoading={showLoading} /></TabPanel>
+                    <TabPanel value="alert" className="px-0"><TabComponents.Alert setShowLoading={setShowLoading} showLoading={showLoading} /></TabPanel>
+                    <TabPanel value="stats" className="px-0"><TabComponents.Stats setShowLoading={setShowLoading} showLoading={showLoading} /></TabPanel>
+                    <TabPanel value="rules" className="px-0"><TabComponents.Rules setShowLoading={setShowLoading} showLoading={showLoading} /></TabPanel>
                 </TabContext>
             </Container>
 
