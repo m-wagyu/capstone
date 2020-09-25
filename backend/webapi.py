@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from flask import Flask, request, redirect, url_for, jsonify, abort
+from flask import Flask, request, redirect, url_for, jsonify, abort, render_template
 from flask_cors import CORS, cross_origin
 from time import sleep
 
@@ -17,7 +17,7 @@ r'/api/server_action/*' : {
 
 @app.route('/',methods=['GET'])
 def root():
-  return redirect(url_for('server_status'))
+  return render_template('index.html')
 
 @app.route('/api/server_action/',methods=['POST'])
 def server_action():
