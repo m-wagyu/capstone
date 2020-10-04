@@ -14,7 +14,7 @@ import TabComponents from './components/TabComponents.jsx'
 
 export default function App() {
 
-    const [value, setValue] = useState('rules');
+    const [value, setValue] = useState('home');
     const [showLoading, setShowLoading] = useState(false)
 
     const handleChange = (event, newValue) => {
