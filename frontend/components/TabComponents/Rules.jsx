@@ -62,10 +62,9 @@ export default function Rules() {
 
             rule.action = each.action;
             rule.protocol = each.header.proto;
-            rule.source = `${each.header.src_addr}:${each.header.src_port}`
-            rule.direction = each.header.direction
-            rule.destination = `${each.header.dst_addr}:${each.header.dst_port}`
-            
+            rule.source = `${each.header.src_addr}:${each.header.src_port}`;
+            rule.direction = each.header.direction;
+            rule.destination = `${each.header.dst_addr}:${each.header.dst_port}`;
 
             filteredResponse.push(rule);
           });
@@ -245,8 +244,20 @@ export default function Rules() {
           {
             title: "Source",
             data_row_name: "source",
-            title_props: { align: "center" },
-            data_row_props: { align: "center" },
+            title_props: {
+              align: "center",
+              style: {
+                maxWidth: 210,
+                overflow: "auto",
+              },
+            },
+            data_row_props: {
+              align: "center",
+              style: {
+                maxWidth: 210,
+                overflow: "auto",
+              },
+            },
           },
           {
             title: "Direction",
@@ -257,8 +268,20 @@ export default function Rules() {
           {
             title: "Destination",
             data_row_name: "destination",
-            title_props: { align: "center" },
-            data_row_props: { align: "center" },
+            title_props: {
+              align: "center",
+              style: {
+                maxWidth: 210,
+                overflow: "auto",
+              },
+            },
+            data_row_props: {
+              align: "center",
+              style: {
+                maxWidth: 210,
+                overflow: "auto",
+              },
+            },
           },
           {
             title: "Action",
