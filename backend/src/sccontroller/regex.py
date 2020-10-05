@@ -1,28 +1,17 @@
-def build(*args):
-  s = ''
-  for i in args:
-    if type(i) == list:
-      for j in i:
-        s = s+'|'+j
-    elif type(i) == str:
-      s = s+'|'+j   
-  s = s[1:]
-  return '('+s+')'
-
-
 #action_re = '^ *(pass|drop|reject|alert)\ +'
 #action_re = '(pass|drop|reject|alert)'
 actions = ['pass','drop','reject','alert']
-action_re = build(actions)
 
-basic_protos = ['icmp','tcp','udp','ip']
+basic_protos = ['icmp','tcp','udp','ip','ipv6']
 app_layer_protos = ['http','ftp','tls','smb','dns','dcerpc','ssh','smtp','imap','nfs','dhcp','ikev2','ntp','krb5','ftp-data','pkthdr']
+protos = basic_protos + app_layer_protos
 
 #proto_re = '^(icmp|tcp|udp|ip)\ +'
-proto_re = build(basic_protos,app_layer_protos)
+#proto_re = build(basic_protos,app_layer_protos)
 
 #dir_re = '^(-\>|\<\>)\ +'
-dir_re = '(-\>|\<\>)'
+#dir_re = '(-\>|\<\>)'
+directions = ['->','<>']
 
 #ipv4_re = '^((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))(\/([0-9]|1[0-9]|2[0-9]|30))?\ +'
 ipv4_re = '((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))(\/([0-9]|1[0-9]|2[0-9]|30))?'
