@@ -45,7 +45,7 @@ export default function Stats() {
                     </TableHead>
                     <TableBody>
                         {stats &&
-                            stats['iface-list'].length &&
+                            stats['iface-list'] &&
                             stats['iface-list'].map((row, i) => {
                                 return (
                                     <TableRow key={i}>
