@@ -4,9 +4,10 @@ import subprocess as sp
 import time
 import re
 
-from .src.sccontroller.analyzer import alert as alert_mod, rule as rule_mod
-from .src.sccontroller.scsocket import control_socket
-from .src.sccontroller import sc_config_reader as cc
+from .sccontrol_helper.alert import alert as alert_mod
+from .sccontrol_helper.rule import rule_parser as rp_mod, rule_validator as rv_mod
+from .sccontrol_helper.scsocket import control_socket
+from .sccontrol_helper import sc_config_reader as cc
 from . import config_reader as cr
 
 
@@ -240,14 +241,11 @@ class Controller():
             if re.match(rx,r):
               r = f.readline()
               continue
-            #try:
-            p = rule_mod.RuleParser(r,
+            p = rp_mod.RuleParser(r,
 	      var_port=self.var_group['port'],
 	      var_addr=self.var_group['addr'],
               line_num=i+1)
             out['msg']['rules'].append(p.get_rule())
-            #except rule_mod.InvalidRuleError as e:
-            #  out['msg']['rules'].append({'error':str(e)})
             r = f.readline()
             i += 1
           elif (i < page_num*count) or (i >= (page_num+1)*count) :
@@ -262,12 +260,12 @@ class Controller():
 
   def rule_add(self,rule:dict):
     try:
-      rule_mod.RuleValidator(rule, self.var_group['addr'], self.var_group['port'])
-      r = rule_mod.build_rule(rule)+'\n'
+      rv_mod.RuleValidator(rule, self.var_group['addr'], self.var_group['port'])
+      r = rv_mod.build_rule(rule)+'\n'
       with open(self.files['rule'], 'a') as f:
         f.write(r)
       return {'result':'success','msg':r}
-    except rule_mod.InvalidRuleError as e:
+    except rv_mod.InvalidRuleError as e:
       return {'result':'not-success','error':str(e)}
     except OSError:
       return {'result':'not-success','error':'Error while appending rule'}
