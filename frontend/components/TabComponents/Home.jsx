@@ -68,8 +68,8 @@ export default function Home({ setShowLoading, showLoading }) {
           {
             title: "Message",
             data_row_name: "msg",
-            title_props: { align: "right" },
-            data_row_props: { align: "right" },
+            title_props: { align: "left" },
+            data_row_props: { align: "left" },
           },
         ]}
       />
