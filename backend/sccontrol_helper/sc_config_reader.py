@@ -11,7 +11,7 @@ def get_config_path(cf:str):
   out['fast'] = conf['default-log-dir']+conf['outputs'][0]['fast']['filename']
   out['suricata'] = conf['default-log-dir']+conf['logging']['outputs'][1]['file']['filename']
   out['rule'] = '/var/lib/suricata/rules/suricata.rules'
-  out['consock'] = '/var/run/suricata/suricata-command.socket'
+  out['sc_socket'] = conf['unix-command']['filename']
   f.close()
   return out
 

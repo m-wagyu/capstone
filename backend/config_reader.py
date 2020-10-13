@@ -1,8 +1,10 @@
 import re
 import os
 
-pkg_dir = os.getcwd()
-conf_path = pkg_dir+'/backend/config.cfg'
+from . import config_reader as cr
+
+pkg_dir = os.path.dirname(cr.__file__)
+conf_path = pkg_dir+'/config.cfg'
 
 class InvalidOptionError(Exception):
     pass
