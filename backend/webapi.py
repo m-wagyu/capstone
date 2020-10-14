@@ -25,47 +25,26 @@ def server_action():
     is_run = s.proc_is_run()
     f = request.form['function']
     if f == 'proc_stop':
-      if is_run['result'] == 'success':
-        return jsonify(s.proc_stop())
-      else:
-        return jsonify({'result':'not-success','error':'Suricata is not running'})
-
+      return jsonify(s.proc_stop())
     elif f == 'proc_start':
-      if is_run['result'] == 'not-success':
-        return jsonify(s.proc_start())
-      else:
-        return jsonify({'result':'not-success','error':'Suricata is already running'})
-
+      return jsonify(s.proc_start())
     elif f == 'proc_reload':
-      if is_run['result'] == 'success':
-        return jsonify(s.proc_reload())
-      else:
-        return jsonify({'result':'not-success','error':'Suricata is not running'})
-
+      return jsonify(s.proc_reload())
     else:
       return jsonify({'result':'not-success','error':'Invalid function'})
-
 
 @app.route('/api/server_status/',methods=['GET'])
 def server_status():
   return jsonify(s.proc_is_run())
 
-
 @app.route('/api/run_log/',methods=['GET'])
 def run_log():
-  out = s.log_get()
-  if out['result'] == 'success':
-    return jsonify(out)
-  else:
-    abort(500)
-    #error_message = out['error']
+  return jsonify(s.log_get())
 
 
-# For alert()
-# By default showing 30 alerts max.
+# By default showing 50 alerts max.
 # To increase the limit, use the argument page & count:
 # For example: localhost:5000/alerts?page=0&count=50
-
 @app.route('/api/alerts/',methods=['GET'])
 def alert():
   out = None
@@ -80,45 +59,25 @@ def alert():
     count_per_page = int(count_per_page)
   else:
     count_per_page = 30
-  out = s.alert_get(page_num,count_per_page)
-  if out['result'] == 'success':
-    return jsonify(out)
-  #else:
-    #abort(500)
-    #error_message = alert['error']
+  return jsonify(s.alert_get(page_num,count_per_page))
 
 @app.route('/api/clear_log/',methods=['GET'])
 def clear_log():
-  out = s.alert_clear()
-  if out['result'] == 'success':
-    return jsonify(out)
-  #else:
-    #abort(500)
-    #error_message = out['error']
+  return jsonify(s.alert_clear())
 
 @app.route('/api/stats/',methods=['GET'])
 def stats():
-  out = s.stats_get()
-  if out['result'] == 'success':
-    return jsonify(out)
-  #else:
-    #abort(500)
-    #error_message = out['error']
+  return jsonify(s.stats_get())
 
 @app.route('/api/rules/',methods=['GET'])
 def rules():
   try:
     page = int(request.args.get('page'))
     count = int(request.args.get('count'))
-    out = s.rule_get(page,count)
   except (ValueError, TypeError):
     page = 0
     count = 30
-    out = s.rule_get(page,count)
-  if out['result'] == 'success':
-    return jsonify(out)
-  else:
-    abort(500)
+  return jsonify(s.rule_get(page,count))
 
 @app.route('/api/add_rule/',methods=['POST'])
 def rule_add():
@@ -135,9 +94,7 @@ def rule_add():
   rule['sid'] = request.form['sid'] # value=<an integer>
   rule['gid'] = request.form['gid'] # value=<an integer>
 
-  out = s.rule_add(rule)
-  if out['result'] == 'success':
-    return jsonify(out)
+  return jsonify(s.rule_add(rule))
 
 
 s = sccontroller.Controller()

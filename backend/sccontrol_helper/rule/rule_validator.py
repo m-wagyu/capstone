@@ -1,4 +1,5 @@
 import re
+from .. import regex
 
 class InvalidRuleError(Exception):
     pass
@@ -34,21 +35,21 @@ def build_rule(rule:dict):
 def validate_action(s:str):
     lbuf = s.lstrip().split(' ',1)
     buf = lbuf[0].strip().lower()
-    if buf in ['drop','pass','reject']:
+    if buf in regex.actions:
         return True
     return False
 
 def validate_protocol(s:str):
     lbuf = s.lstrip().split(' ',1)
     buf = lbuf[0].strip().lower()
-    if buf in ['icmp','ip','tcp']:
+    if buf in regex.protos:
         return True
     return False
 
 def validate_direction(s:str):
     lbuf = s.lstrip().split(' ',1)
     buf = lbuf[0].strip().lower()
-    if buf in ['->','<>']:
+    if buf in regex.directions:
         return True
     return False
 

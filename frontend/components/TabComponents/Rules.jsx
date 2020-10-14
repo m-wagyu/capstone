@@ -30,7 +30,7 @@ export default function Rules() {
     proto: formInput("tcp"),
     src_addr: formInput(""),
     src_port: formInput(""),
-    direction: formInput("uni"),
+    direction: formInput("->"),
     enabled: formInput("true"),
     dst_addr: formInput(""),
     dst_port: formInput(""),
