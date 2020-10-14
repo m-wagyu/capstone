@@ -6,13 +6,20 @@ from time import sleep
 from . import sccontroller
 from . import config_reader as cr
 
+
+sock_addr = cr.get_socket_addr()
+
 app = Flask(__name__)
-CORS(app)
-cors = CORS(app, resources={
-r'/api/server_action/*' : {
-	'origins': 'http://localhost:5000'
-	}
-})
+
+#
+# Configure CORS here
+#
+#CORS(app)
+#cors = CORS(app, resources={
+#r'/api/server_action/*' : {
+#	'origins': 'http://localhost:5000'
+#	}
+#})
 
 
 @app.route('/',methods=['GET'])
@@ -82,24 +89,23 @@ def rules():
 @app.route('/api/add_rule/',methods=['POST'])
 def rule_add():
   rule = {}
-  rule['enabled'] = request.form['enabled'] # value="True" or ""
-  rule['action'] = request.form['action'] # value=("drop"|"alert"|"pass"|"reject")
-  rule['proto'] = request.form['proto'] # value=('icmp'|'tcp'|'udp'|'ip')
+  rule['enabled'] = request.form['enabled']     # value="True" or ""
+  rule['action'] = request.form['action']       # value=("drop"|"alert"|"pass"|"reject")
+  rule['proto'] = request.form['proto']         # value=('icmp'|'tcp'|'udp'|'ip')
   rule['direction'] = request.form['direction'] # value=('->'|'<>') --> shown as "unidirectional"/"bi-directional"
-  rule['src_addr'] = request.form['src_addr'] # value=<a string>
-  rule['dst_addr'] = request.form['dst_addr'] # value=<a string>
-  rule['src_port'] = request.form['src_port'] # value=<a string>
-  rule['dst_port'] = request.form['dst_port'] # value=<a string>
-  rule['msg'] = request.form['msg'] # value=<a string>
-  rule['sid'] = request.form['sid'] # value=<an integer>
-  rule['gid'] = request.form['gid'] # value=<an integer>
+  rule['src_addr'] = request.form['src_addr']   # value=<a string>
+  rule['dst_addr'] = request.form['dst_addr']   # value=<a string>
+  rule['src_port'] = request.form['src_port']   # value=<a string>
+  rule['dst_port'] = request.form['dst_port']   # value=<a string>
+  rule['msg'] = request.form['msg']             # value=<a string>
+  rule['sid'] = request.form['sid']             # value=<an integer>
+  rule['gid'] = request.form['gid']             # value=<an integer>
 
   return jsonify(s.rule_add(rule))
 
 
 s = sccontroller.Controller()
-##### remove debug mode on final version !!! #####
-sock_addr = cr.get_socket_addr()
-app.run(debug=True,
+
+app.run(debug=False,
         host=sock_addr[0],
         port=sock_addr[1])
