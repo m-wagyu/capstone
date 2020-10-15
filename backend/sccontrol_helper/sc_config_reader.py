@@ -27,7 +27,7 @@ def get_config_path(cf:str):
     try:
         out['sc_socket'] = conf['unix-command']['filename']
     except KeyError:
-        out['sc_socket'] = '/var/run/suricata/suricata-comand.socket'
+        out['sc_socket'] = '/var/run/suricata/suricata-command.socket'
 
     f.close()
     return out
